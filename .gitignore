@@ -1,0 +1,9 @@
+# Local configuration, secrets, and generated caches
+.env
+.env.*
+*.pem
+*.key
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db
