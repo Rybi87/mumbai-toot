@@ -32,6 +32,9 @@ This is cartoon physics, not a simulation. Never play on real railway tracks.
 Rebuild the standalone file: `python3 build.py`
 Run engine tests: `node test-game.cjs`
 Run hazard and procedural-fairness tests: `node test-hazards.cjs`
+Run pole attachment and rendering-layer tests: `node test-render.cjs`
+
+Powerline spans are anchored to grounded trackside poles with crossarms, ribbed insulators, warning plates and striped bases. The supports render behind trains and the runner; only the live cable paths are collision hazards.
 
 The hazard suite checks actual cable-segment collisions, safe single jumps beneath high wires, lethal careless boosts, express clearance at several speeds, warning/pause/restart behavior, 48 seeded 90-second playthroughs, and six 15/30/60-fps playthroughs. Encounter scheduling keeps express trains separate from overhead traps.
 

@@ -153,19 +153,51 @@ if(express){
   return;
 }
 const c=['#b77d91','#4b8d86','#d98b46'][t.tint||0];rr(x,y,w,t.h-7,11,'#f4e5c3','#315e57');rr(x+3,y+3,w-6,19,[8,8,0,0],c);rect(x+2,y+52,w-4,16,c);for(let i=0;i<Math.floor((w-25)/33);i++){rr(x+15+i*33,y+27,24,22,3,'#375f60');rect(x+18+i*33,y+29,7,16,'#7dabb0');}rr(x+5,y+27,6,22,2,'#345b56');ellipse(x+9,y+62,4,4,'#ffe49e');rect(x+14,y-3,w-28,3,'#315e57');rr(x+w*.52,y-7,24,4,2,'#627b6a');for(const xx of [x+23,x+w-24]){ellipse(xx,396,10,10,'#2b5049');ellipse(xx,396,4,4,'#b9c1a6');}text('LOCAL',x+44,y+66,9,'#fff0ce');}
+function wirePoles(w){
+  // Trackside supports are scenery behind the running lane; only the cables zap.
+  const spans=w.paths.filter(path=>path.length>1&&path[0][0]===0&&path[path.length-1][0]===w.w);
+  if(!spans.length)return;
+  for(const side of [0,1]){
+    const anchorX=w.x+(side?w.w:0),out=side?1:-1,poleX=anchorX+out*22,baseY=390;
+    const ends=spans.map(path=>path[side?path.length-1:0]);
+    const topY=Math.min(...ends.map(p=>p[1]))-27;
+    // Weathered concrete footings and a braced steel mast, slightly tapered.
+    ellipse(poleX,baseY+2,19,4,'#254c4228');
+    rr(poleX-13,baseY-10,26,12,3,'#b9b99b','#526d5d');
+    line([[poleX,baseY-8],[poleX-out*3,topY]],'#3d6054',11);
+    line([[poleX-2,baseY-13],[poleX-out*3-1,topY+3]],'#81927a',4);
+    for(let y=topY+35;y<baseY-95;y+=43){
+      line([[poleX-5,y],[poleX+4,y]],'#334f45',2);
+      ellipse(poleX+1,y+4,1.5,1.5,'#d9d4ab');
+    }
+    // Each live span terminates on a crossarm and ribbed ceramic insulator.
+    for(const [,y] of ends){
+      line([[poleX,y+12],[anchorX-out*8,y+12]],'#38574b',6);
+      line([[poleX,y+38],[anchorX,y+12]],'#5e7561',3);
+      line([[anchorX,y],[anchorX,y+12]],'#4f5640',5);
+      for(const dy of [4,8,12])line([[anchorX-5,y+dy],[anchorX+5,y+dy]],'#f2dfaa',3);
+    }
+    // Familiar black/yellow bands and a small high-voltage warning plate.
+    for(let y=baseY-53;y<baseY-15;y+=12){
+      rect(poleX-5,y,10,6,'#dcb653');rect(poleX-5,y+6,10,6,'#3b4e3f');
+    }
+    rr(poleX-8,baseY-84,16,24,2,'#e8bd55','#3d5849');
+    line([[poleX+3,baseY-80],[poleX-3,baseY-72],[poleX+2,baseY-72],[poleX-3,baseY-64]],'#434632',2);
+  }
+}
 function wire(w){
   // Render the exact engine polylines, not a smoothed or invented collision line.
   for(let j=0;j<w.paths.length;j++){
     const points=w.paths[j].map(([dx,y])=>[w.x+dx,y]);if(points.length<2)continue;
     ctx.save();ctx.shadowColor='#ed9b44';ctx.shadowBlur=7;line(points,'#57392b',6);ctx.shadowBlur=0;line(points,'#aa6a39',2);ctx.restore();
-    for(const index of [0,points.length-1]){const [x,y]=points[index];rr(x-5,y-5,10,10,2,'#eed49a','#5c5741');line([[x-5,y-1],[x+5,y-1]],'#84663c',1);}
+    if(w.paths[j][0][0]===0&&w.paths[j][w.paths[j].length-1][0]===w.w)for(const index of [0,points.length-1]){const [x,y]=points[index];rr(x-5,y-5,10,10,2,'#eed49a','#5c5741');line([[x-5,y-1],[x+5,y-1]],'#84663c',1);}
     // Short sparks hang from actual vertices; their flicker reads as electricity.
     if(Math.sin(clock*19+j*2)>.15){const [x,y]=points[Math.floor(points.length/2)];line([[x,y+3],[x-3,y+9],[x+3,y+10],[x-1,y+17]],'#e9a343',3);line([[x,y+3],[x-3,y+9],[x+3,y+10],[x-1,y+17]],'#fff0b0',1);}
   }
 }
 function player(){const air=s.y<399.9,run=s.mode==='playing'?Math.sin(s.time*19):Math.sin(clock*3)*.2;ellipse(180,401,air?14:22,4,air?'#193e4018':'#193e4033');ctx.save();ctx.translate(180,s.y);ctx.rotate(air?-.13:.06);line([[0,-21],[-8-(air?7:run*8),-11],[-11-(air?9:run*10),-3]],'#244b4b',7);line([[3,-21],[10+(air?6:run*8),-13],[13+(air?3:run*11),-3]],'#244b4b',7);rr(-19-(air?9:run*10),-6,15,6,3,'#fff5d7');rr(8+(air?3:run*11),-6,16,6,3,'#fff5d7');rr(-16,-43,13,23,5,'#417c70','#244f49');rr(-9,-43,23,24,7,'#f2b43f');line([[8,-38],[air?19:18,-30],[air?25:12,-40]],'#ab6641',5);line([[-5,-38],[-15,-28],[-20,-32]],'#ab6641',5);ctx.fillStyle='#e05b39';ctx.beginPath();ctx.moveTo(-5,-44);ctx.lineTo(-29-Math.sin(clock*15)*3,-49);ctx.lineTo(-23,-39);ctx.closePath();ctx.fill();rr(-6,-47,14,6,2,'#e05b39');ellipse(4,-56,12,13,'#b9764a');ellipse(14,-54,4,3,'#b9764a');rr(-8,-70,23,10,5,'#273f3a');rect(-8,-62,7,7,'#273f3a');ellipse(10,-58,1.5,1.8,'#213f39');line([[11,-49],[15,-50]],'#753e2d',1.5);ctx.restore();
 if(tootAge<(boostToot?.72:.55)){ctx.save();const duration=boostToot?.72:.55;ctx.globalAlpha=1-tootAge/duration;const x=118-tootAge*35,y=s.y-31-tootAge*45;for(let i=0;i<(boostToot?5:3);i++)ellipse(x-i*11,y+i*6,9+i*2,7+i*2,boostToot?'#ffe6a0':'#f0cf7b');if(boostToot){for(let i=0;i<3;i++)line([[150-i*11,s.y+5+i*5],[146-i*11,s.y+14+i*7]],'#e79037',3);}ctx.translate(x-(boostToot?50:42),y-23);ctx.rotate(-.16);text(boostToot?'TOOT TOOT!':'toot!',0,0,boostToot?20:23,boostToot?'#a33f26':'#ba4c2e','Georgia');ctx.restore();}}
-function draw(){ctx.clearRect(0,0,1080,480);skyline(s.distance);if(s.mode==='ready')train({x:765,w:158,h:82,tint:0});for(const t of s.trains)train(t);for(const w of s.wires||[])wire(w);player();if(s.mode==='over')text(s.deathReason==='wire'?'ZAP!':'OOPS!',144,s.y-91,22,'#ac482c','Georgia');}
+function draw(){ctx.clearRect(0,0,1080,480);skyline(s.distance);for(const w of s.wires||[])wirePoles(w);if(s.mode==='ready')train({x:765,w:158,h:82,tint:0});for(const t of s.trains)train(t);for(const w of s.wires||[])wire(w);player();if(s.mode==='over')text(s.deathReason==='wire'?'ZAP!':'OOPS!',144,s.y-91,22,'#ac482c','Georgia');}
 function frame(now){const dt=last?Math.min((now-last)/1000,.05):0;last=now;const prev=s.mode;if(s.mode!=='paused'){clock+=dt;tootAge+=dt;}E.step(s,dt);if(s.cleared!==lastScore){lastScore=s.cleared;$('score').textContent=String(s.cleared).padStart(2,'0');beep('score');}if(prev==='playing'&&s.mode==='over'){beep('crash');if(s.cleared>best){best=s.cleared;$('best').textContent=String(best).padStart(2,'0');try{localStorage.setItem('mumbai-toot-best-v2',String(best));}catch{}}sync();$('announcement').textContent=`Run over. ${s.cleared} trains cleared. ${deathCopy()} Play again to retry.`;}hud();draw();requestAnimationFrame(frame);}
 window.mumbaiToot=Object.freeze({snapshot:()=>({...s,version:'2.0',trains:s.trains.map(t=>({...t})),wires:(s.wires||[]).map(w=>({...w,paths:w.paths.map(path=>path.map(point=>[...point]))})),warning:s.warning?{...s.warning}:null,best,sound,audioState:audio?.state||'not-started'})});sync();requestAnimationFrame(frame);
 })();</script></body></html>
